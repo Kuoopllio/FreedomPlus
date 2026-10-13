@@ -11,7 +11,10 @@ import com.freegang.xpler.utils.io.KFileUtils.need
 import com.freegang.xpler.utils.io.KFileUtils.pureFileName
 import com.freegang.xpler.utils.io.KFileUtils.subMax
 import com.freegang.xpler.utils.net.KHttpUtils
+import com.freegang.xpler.xp.getNestedUrlList
 import com.freegang.xpler.xp.getObjectField
+import com.freegang.xpler.xp.getObjectFieldOrNull
+import com.freegang.xpler.xp.getUrlList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -56,28 +59,28 @@ class DownloadLogic(
         deAweme.shortId = user?.getObjectField<String>("uniqueId") ?: ""
         if (deAweme.shortId.isEmpty()) deAweme.shortId = user?.getObjectField<String>("shortId") ?: "" //如果uniqueId为空, shortId为账号
 
-        //视频
+        //视频 (h264PlayAddr 为无水印地址, 字段名跨版本可能不同, 依次兜底)
         deAweme.videoUrlList = aweme
-            .getObjectField<Any>("video")
-            ?.getObjectField<Any>("h264PlayAddr")
-            ?.getObjectField<List<String>>("urlList")
+            .getObjectFieldOrNull<Any>("video")
+            ?.getNestedUrlList("h264PlayAddr", "playAddr", "downloadAddr", "newDownloadAddr")
             ?: listOf()
 
         //图文列表
         val imageUrlList = mutableListOf<ImageUrlStruct>()
-        val imagesStructList = aweme.getObjectField<List<Any>>("images")
+        val imagesStructList = aweme.getObjectFieldOrNull<List<Any>>("images")
         imagesStructList?.forEach { imagesStruct ->
-            val urlList = imagesStruct.getObjectField<List<String>>("urlList")
-            val imageUrlStruct = ImageUrlStruct(urlList ?: listOf())
+            //老版本图片元素直接带 urlList; 新版本(16.x)变成 ImageInfo, 地址在 labelLarge / labelThumb 里
+            val urlList = imagesStruct.getUrlList()
+                .ifEmpty { imagesStruct.getNestedUrlList("labelLarge", "labelThumb") }
+            val imageUrlStruct = ImageUrlStruct(urlList)
             imageUrlList.add(imageUrlStruct)
         }
         deAweme.imageUrlStructList = imageUrlList
 
         //背景音乐
         deAweme.musicUrlList = aweme
-            .getObjectField<Any>("music")
-            ?.getObjectField<Any>("playUrl")
-            ?.getObjectField<List<String>>("urlList")
+            .getObjectFieldOrNull<Any>("music")
+            ?.getNestedUrlList("playUrl", "playUrlH265")
             ?: listOf()
 
 

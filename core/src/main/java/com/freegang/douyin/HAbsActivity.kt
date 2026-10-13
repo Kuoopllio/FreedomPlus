@@ -131,14 +131,16 @@ class HAbsActivity(
                 val aweme = methods.first().call(absActivity) ?: return@launch
 
                 //不处理评论区视频(如果是视频的话)
-                val video = aweme.getObjectField<Any>("video")
+                val video = aweme.getObjectFieldOrNull<Any>("video")
                 if (video != null) return@launch
 
                 //如果没有背景音乐, 代表是评论区图片(图文也可能没有背景音乐, 但是少, 就这么判断了)
-                val music = aweme.getObjectField<Any>("music")
+                val music = aweme.getObjectFieldOrNull<Any>("music")
                 if (music == null) {
-                    val image = aweme.getObjectField<List<Any>>("images")?.first() ?: return@launch
-                    urlList = image.getObjectField<List<String>>("urlList") ?: return@launch
+                    val image = aweme.getObjectFieldOrNull<List<Any>>("images")?.firstOrNull() ?: return@launch
+                    //老版本图片元素直接带 urlList; 新版本(16.x)变成 ImageInfo, 地址在 labelLarge / labelThumb 里
+                    urlList = image.getUrlList()
+                        .ifEmpty { image.getNestedUrlList("labelLarge", "labelThumb") }
                 }
             }
 
@@ -148,7 +150,7 @@ class HAbsActivity(
             val contentView: View = absActivity.window.decorView.findViewById(android.R.id.content)
             val outViews = ArrayList<View>()
             contentView.findViewsWithText(outViews, "返回", View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION)
-            val backBtn = outViews.first { it.contentDescription.equals("返回") }
+            val backBtn = outViews.firstOrNull { it.contentDescription?.toString() == "返回" } ?: return@launch
 
             //清空旧视图
             val viewGroup = backBtn.parent as ViewGroup

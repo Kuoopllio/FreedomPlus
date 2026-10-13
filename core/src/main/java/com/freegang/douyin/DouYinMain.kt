@@ -39,11 +39,26 @@ class DouYinMain(
 
                     //Hook
                     Config.read(app)
-                    HMainActivity(lpparam, app)
-                    HAbsActivity(lpparam)
-                    HMainFragment(lpparam)
-                    HEmojiDetailDialogNew(lpparam)
+                    //逐个隔离注册: 某个类在新版本不存在时, 只跳过它, 不影响后面的 Hook
+                    hookSafely("HMainActivity") { HMainActivity(lpparam, app) }
+                    hookSafely("HAbsActivity") { HAbsActivity(lpparam) }
+                    hookSafely("HMainFragment") { HMainFragment(lpparam) }
+                    //表情包相关
+                    //16.4.15 (Google Play 版) 起 emoji.model.Emoji / EmojiDetailDialogNew / EmojiBottomSheetDialog
+                    //已从抖音中移除, 注册必定抛 ClassNotFoundError, 故暂时关闭。
+                    //hookSafely("HEmojiDetailDialogNew") { HEmojiDetailDialogNew(lpparam) }
                 }
             }
+    }
+
+    /**
+     * 隔离执行单个 Hook 注册, 失败只记录日志, 不中断后续 Hook
+     */
+    private fun hookSafely(tag: String, block: () -> Unit) {
+        try {
+            block.invoke()
+        } catch (e: Throwable) {
+            KLogCat.e("$tag 注册失败: \n${e.stackTraceToString()}")
+        }
     }
 }

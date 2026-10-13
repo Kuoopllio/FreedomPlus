@@ -4,3 +4,9 @@ v1.0.0
 v1.0.1
 文件名过长无法下载;
 关注页未获取到基本信息
+
+v1.1.0
+适配抖音16.4.15 (Google Play版, 包名 com.ss.android.ugc.aweme.mobile);
+该版本抖音已移除 emoji 模块, 不支持表情包保存;
+禁滑动改为运行时向上查找触摸拦截方法, 兼容新旧版本;
+视频/图片地址字段增加多候选兜底 (h264PlayAddr/playAddr/downloadAddr、urlList/labelLarge/labelThumb)

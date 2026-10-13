@@ -189,6 +189,50 @@ fun <T> Any.getObjectField(fieldName: String): T? {
 }
 
 /**
+ * 从实例对象中尝试获取某个字段的值, 字段不存在时返回 null 而不抛异常
+ *
+ * [getObjectField] 底层是 [XposedHelpers#getObjectField], 字段不存在会抛 NoSuchFieldError,
+ * 跨版本读取字段时用这个更安全
+ *
+ * @param fieldName 字段名
+ * @return 该字段的值, 不存在或为 null 时返回 null
+ */
+fun <T> Any.getObjectFieldOrNull(fieldName: String): T? {
+    return try {
+        XposedHelpers.getObjectField(this, fieldName) as T?
+    } catch (e: Throwable) {
+        null
+    }
+}
+
+/**
+ * 取当前对象自身的 urlList 字段的值
+ *
+ * 例: 老版本 Aweme.images[i].urlList
+ */
+fun Any.getUrlList(): List<String> {
+    return getObjectFieldOrNull<List<String>>("urlList") ?: listOf()
+}
+
+/**
+ * 按字段名顺序, 从子对象里取 urlList, 返回第一个非空结果
+ *
+ * 不同版本抖音的地址字段名不一样, 靠这个做多候选兜底:
+ * - 视频地址: h264PlayAddr / playAddr / downloadAddr / newDownloadAddr
+ * - 图片地址: 16.x 起变成 labelLarge / labelThumb
+ *
+ * @param fieldNames 候选字段名, 按优先级排列
+ * @return 第一个非空的 urlList, 全部落空则返回空列表
+ */
+fun Any.getNestedUrlList(vararg fieldNames: String): List<String> {
+    for (name in fieldNames) {
+        val urlList = getObjectFieldOrNull<Any>(name)?.getObjectFieldOrNull<List<String>>("urlList")
+        if (!urlList.isNullOrEmpty()) return urlList
+    }
+    return listOf()
+}
+
+/**
  * 从实例对象中直接获取某个静态字段的值
  *
  * @param fieldName 字段名

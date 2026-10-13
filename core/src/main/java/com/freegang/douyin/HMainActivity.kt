@@ -21,7 +21,7 @@ class HMainActivity(
 ) : BaseHook(lpparam) {
 
     //当前适配版本列表
-    private val supportVersions = listOf("24.4.0", "24.5.0")
+    private val supportVersions = listOf("24.4.0", "24.5.0", "16.4.15")
 
     override fun onHook() {
         val config = Config.get()

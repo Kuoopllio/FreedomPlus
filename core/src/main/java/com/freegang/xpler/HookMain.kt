@@ -13,7 +13,8 @@ class HookMain : IXposedHookLoadPackage {
 
     fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam, application: Application) {
         when (lpparam.packageName) {
-            HookPackages.douYinPackageName -> {
+            HookPackages.douYinPackageName,
+            HookPackages.douYinGpPackageName -> {
                 DouYinMain(lpparam, application)
             }
         }

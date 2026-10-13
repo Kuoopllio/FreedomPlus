@@ -20,6 +20,9 @@
 ## 支持版本
 
 - 24.4.0、24.5.0
+- 16.4.15 (Google Play 版, 包名 `com.ss.android.ugc.aweme.mobile`)
+  - ⚠️ 该版本抖音已移除整个 emoji 模块 (`emoji.model.Emoji`、`EmojiDetailDialogNew`、`EmojiBottomSheetDialog`),
+    **不支持表情包保存**, 其余功能可用
 
 
 
